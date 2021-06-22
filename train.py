@@ -13,9 +13,11 @@ BATCH_SIZE = 1
 EPOCHS = 5
 
 parser = argparse.ArgumentParser()
-parser.add_argument('training_dir', type=str, help="path to data dir")
+parser.add_argument('--training_dir', type=str, help="path to data dir")
 
-training_dir = "/Users/leangpanharith/Documents/school_stuffs/unet/data/training"
+args = parser.parse_args()
+# training_dir = "/Users/leangpanharith/Documents/school_stuffs/unet/data/training"
+training_dir = args.training_dir
 
 training_size = len(list(glob.glob(f'{training_dir}/*')))//2
 training_data = DataGenerator(training_dir, training_size)
