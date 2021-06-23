@@ -18,10 +18,15 @@ print(f'device type: {device.type}')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--training_dir', type=str, help="path to data dir")
+parser.add_argument('--epoch', type=int, help="number of epoch")
+parser.add_argument('--output_dir', type=str, help="path to output train")
 
 args = parser.parse_args()
 # training_dir = "/Users/leangpanharith/Documents/school_stuffs/unet/data/training"
 training_dir = args.training_dir
+epoch = args.epoch
+output_dir = args.output_dir
+
 
 training_size = len(list(glob.glob(f'{training_dir}/*')))//2
 training_data = DataGenerator(training_dir, training_size)
@@ -54,5 +59,8 @@ def train_loop(dataloader, model):
             loss, current = loss.item(), batch * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
 
+for i in range(epoch):
+    print(f'Epoch: {i}')
+    train_loop(train_dataloader, uNet)
+    torch.save(uNet, f'{output_dir}/model_epoch_{i}.pth')
 
-train_loop(train_dataloader, uNet)
