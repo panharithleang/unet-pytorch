@@ -67,25 +67,28 @@ def train_loop(dataloader, model):
             optimizer.step()
             total_loss += loss.item()
             pbar.update(1)
+
     return total_loss / size
 
 
 def validation_loop(dataloader, model):
     size = dataloader.__len__()
     total_loss = 0
-    for X, y in dataloader:
-        X = X.to(device)
-        y = y.to(device)
-        pred = model(X)
-        loss = loss_fn(pred, y)
-        total_loss += loss.item()
+    with tqdm(total=size) as pbar:
+        for X, y in dataloader:
+            X = X.to(device)
+            y = y.to(device)
+            pred = model(X)
+            loss = loss_fn(pred, y)
+            total_loss += loss.item()
+            pbar.update(1)
     return total_loss/size
 
 
 for i in range(epoch):
     print(f'Epoch: {i}')
     epoch_train_loss = train_loop(train_dataloader, uNet)
-    torch.save(uNet, f'{output_dir}/model_epoch_{i}.pth')
+    torch.save(uNet.state_dict(), f'{output_dir}/model_epoch_{i}.pth')
     epoch_validation_loss = validation_loop(validation_dataloader, uNet)
     print(
         f'train_loss: {epoch_train_loss}  validation_loss: {epoch_validation_loss}')
