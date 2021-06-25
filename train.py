@@ -22,22 +22,26 @@ parser.add_argument('--validation_dir', type=str,
                     help="path to validation data")
 parser.add_argument('--epoch', type=int, help="number of epoch")
 parser.add_argument('--output_dir', type=str, help="path to output train")
+parser.add_argument('--checkpoint', type=str, help="path to checkpoint")
 
 args = parser.parse_args()
 training_dir = args.training_dir
 validation_dir = args.validation_dir
 epoch = args.epoch
 output_dir = args.output_dir
+checkpoint = args.checkpoint
 
+print(checkpoint)
 
 training_size = len(list(glob.glob(f'{training_dir}/*')))//2
-training_data = DataGenerator(training_dir, training_size)
+training_data = DataGenerator(training_dir, training_size, is_train_set=True)
 
 train_dataloader = DataLoader(training_data, batch_size=1, shuffle=True)
 train_features, label_feature = next(iter(train_dataloader))
 
 validation_size = len(list(glob.glob(f'{validation_dir}/*')))//2
-validation_data = DataGenerator(validation_dir, validation_size)
+validation_data = DataGenerator(
+    validation_dir, validation_size, is_train_set=False)
 
 validation_dataloader = DataLoader(validation_data, batch_size=1, shuffle=True)
 train_features, label_feature = next(iter(validation_dataloader))
@@ -45,6 +49,9 @@ train_features, label_feature = next(iter(validation_dataloader))
 print(f"Feature batch shape: {train_features.size()}")
 print(f"Labels batch shape: {label_feature.size()}")
 uNet = UNet(2)
+if checkpoint != None:
+    uNet.load_state_dict(torch.load(checkpoint, map_location=device))
+    uNet.eval()
 uNet.to(device)
 
 loss_fn = nn.CrossEntropyLoss()
@@ -84,10 +91,13 @@ def validation_loop(dataloader, model):
     return total_loss/size
 
 
+prev_eval_loss = 99999
 for i in range(epoch):
     print(f'Epoch: {i}')
     epoch_train_loss = train_loop(train_dataloader, uNet)
-    torch.save(uNet.state_dict(), f'{output_dir}/model_epoch_{i}.pth')
     epoch_validation_loss = validation_loop(validation_dataloader, uNet)
+    if(prev_eval_loss > epoch_validation_loss):
+        torch.save(uNet.state_dict(), f'{output_dir}/model_epoch_{i}.pth')
+        prev_eval_loss = epoch_validation_loss
     print(
         f'train_loss: {epoch_train_loss}  validation_loss: {epoch_validation_loss}')

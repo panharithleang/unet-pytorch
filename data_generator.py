@@ -11,24 +11,32 @@ from torchvision.transforms.transforms import RandomVerticalFlip
 
 
 class DataGenerator(Dataset):
-    def __init__(self, img_dir, data_len):
+    def __init__(self, img_dir, data_len, is_train_set):
         self.img_dir = img_dir
         self.data_len = data_len
+        self.is_train_set = is_train_set
 
-        self.transform = transforms.Compose([
+        self.train_set_transform = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.RandomRotation(10),
             # transforms.RandomResizedCrop(572)
             transforms.Resize([572, 572])
         ])
-        self.target_transform = transforms.Compose([
+        self.train_set_target_transform = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.RandomRotation(10),
             transforms.Resize([572, 572]),
             transforms.CenterCrop([388, 388])
             # transforms.RandomResizedCrop(572)
+        ])
+        self.validation_set_transform = transforms.Compose([
+            transforms.Resize([572, 572])
+        ])
+        self.validation_set_target_transform = transforms.Compose([
+            transforms.Resize([572, 572]),
+            transforms.CenterCrop([388, 388])
         ])
 
     def __len__(self):
@@ -44,7 +52,10 @@ class DataGenerator(Dataset):
         img_path = f'{self.img_dir}/{index}.jpg'
 
         img = read_image(img_path)
-        img = self.transform(img)
+        if self.is_train_set:
+            img = self.train_set_transform(img)
+        else:
+            img = self.validation_set_transform(img)
         img = img.float()
 
         random.seed(seed)
@@ -52,9 +63,11 @@ class DataGenerator(Dataset):
 
         mask_path = f'{self.img_dir}/{index}_mask.jpg'
         mask = read_image(mask_path)
-        mask = self.target_transform(mask)
+        if self.is_train_set:
+            mask = self.train_set_target_transform(mask)
+        else:
+            mask = self.validation_set_target_transform(mask)
         mask = torch.where(mask > 100, 1, 0)
         mask = mask[0]
-
 
         return img, mask
