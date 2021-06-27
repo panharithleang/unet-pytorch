@@ -50,6 +50,7 @@ print(f"Feature batch shape: {train_features.size()}")
 print(f"Labels batch shape: {label_feature.size()}")
 
 uNet = UNet(2)
+uNet.to(device)
 
 loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.SGD(uNet.parameters(), lr=0.001, momentum=0.99)
@@ -60,7 +61,6 @@ if checkpoint != None:
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     uNet.eval()
 
-uNet.to(device)
 
 
 def train_loop(dataloader, model):
