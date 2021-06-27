@@ -27,16 +27,16 @@ class DataGenerator(Dataset):
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.RandomRotation(10),
-            transforms.Resize([572, 572]),
-            transforms.CenterCrop([388, 388])
+            transforms.Resize([388, 388]),
+            # transforms.CenterCrop([388, 388])
             # transforms.RandomResizedCrop(572)
         ])
         self.validation_set_transform = transforms.Compose([
             transforms.Resize([572, 572])
         ])
         self.validation_set_target_transform = transforms.Compose([
-            transforms.Resize([572, 572]),
-            transforms.CenterCrop([388, 388])
+            transforms.Resize([388, 388]),
+            # transforms.CenterCrop([388, 388])
         ])
 
     def __len__(self):

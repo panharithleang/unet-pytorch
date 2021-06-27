@@ -48,14 +48,21 @@ train_features, label_feature = next(iter(validation_dataloader))
 
 print(f"Feature batch shape: {train_features.size()}")
 print(f"Labels batch shape: {label_feature.size()}")
+
 uNet = UNet(2)
-if checkpoint != None:
-    uNet.load_state_dict(torch.load(checkpoint, map_location=device))
-    uNet.eval()
-uNet.to(device)
 
 loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.SGD(uNet.parameters(), lr=0.001, momentum=0.99)
+
+if checkpoint != None:
+    checkpoint = torch.load(checkpoint, map_location=device)
+    uNet.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    epoch = checkpoint['epoch']
+    loss = checkpoint['loss']
+    uNet.eval()
+
+uNet.to(device)
 
 
 def train_loop(dataloader, model):
@@ -97,7 +104,12 @@ for i in range(epoch):
     epoch_train_loss = train_loop(train_dataloader, uNet)
     epoch_validation_loss = validation_loop(validation_dataloader, uNet)
     if(prev_eval_loss > epoch_validation_loss):
-        torch.save(uNet.state_dict(), f'{output_dir}/model_epoch_{i}.pth')
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': uNet.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'loss': epoch_train_loss,
+        }, f'{output_dir}/model_epoch_{i}.pth')
         prev_eval_loss = epoch_validation_loss
     print(
         f'train_loss: {epoch_train_loss}  validation_loss: {epoch_validation_loss}')
