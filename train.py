@@ -75,7 +75,6 @@ def train_loop(dataloader, model):
             y = y.to(device)
             pred = model(X)
             loss = loss_fn(pred, y)
-            optimizer.to(device)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
